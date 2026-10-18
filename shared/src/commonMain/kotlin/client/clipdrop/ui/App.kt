@@ -6,48 +6,59 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import client.clipdrop.data.ClipBoardStreamingEngine
-import client.clipdrop.data.KtorSseClient
-import client.clipdrop.platformHost
+import org.koin.compose.KoinContext
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
     MaterialTheme {
-        val client = remember { KtorSseClient.instance }
-        val repository = remember {
-            ClipBoardStreamingEngine(
-                client = client,
-                host = platformHost(),
-            )
-        }
+        KoinContext {
+            val viewModel: ClipboardViewModel = koinViewModel()
+            val state by viewModel.state.collectAsState()
 
-        var latestClip by remember { mutableStateOf("Waiting for clipboard...") }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                when (val current = state) {
+                    is ClipboardUiState.Connecting -> {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Connecting to ClipDrop daemon...")
+                    }
 
-        LaunchedEffect(Unit) {
-            repository.watchClipboard().collect { text ->
-                latestClip = text
+                    is ClipboardUiState.Success -> {
+                        Text(
+                            text = "Latest Clipboard",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = current.text,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+
+                    is ClipboardUiState.Error -> {
+                        Text(
+                            text = "Error: ${current.message}",
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
             }
-        }
-
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = "Latest from Mac:", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = latestClip, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }

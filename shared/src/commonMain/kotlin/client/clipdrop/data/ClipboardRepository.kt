@@ -5,7 +5,7 @@ import io.ktor.client.plugins.sse.sse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class ClipBoardStreamingEngine(
+class ClipboardRepository(
     private val client: HttpClient,
     private val host: String,
 ) {
