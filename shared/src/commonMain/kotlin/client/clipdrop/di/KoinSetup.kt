@@ -2,6 +2,7 @@ package client.clipdrop.di
 
 import client.clipdrop.data.ClipboardRepository
 import client.clipdrop.platformHost
+import client.clipdrop.platformModule
 import client.clipdrop.ui.ClipboardViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -28,12 +29,20 @@ private val appModule = module {
         )
     }
 
-    viewModel { ClipboardViewModel(clipboardRepository = get()) }
+    viewModel {
+        ClipboardViewModel(
+            clipboardRepository = get(),
+            clipboardActions = get()
+        )
+    }
 }
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) {
     startKoin {
         appDeclaration()
-        modules(appModule)
+        modules(
+            appModule,
+            platformModule,
+        )
     }
 }

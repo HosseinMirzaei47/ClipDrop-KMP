@@ -19,7 +19,7 @@ import org.koin.compose.KoinContext
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun App() {
+fun ClipboardScreen() {
     MaterialTheme {
         KoinContext {
             val viewModel: ClipboardViewModel = koinViewModel()
